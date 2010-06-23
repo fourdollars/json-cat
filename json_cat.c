@@ -9,12 +9,15 @@
 typedef struct json_cat_private json_cat_private;
 
 static json_cat* json_cat_load(json_cat* cat, const char* file);
-static json_cat* json_cat_obj(json_cat* cat, const char* string);
-static json_cat* json_cat_idx(json_cat* cat, unsigned int index);
+static json_cat* json_cat_object(json_cat* cat, const char* string);
+static json_cat* json_cat_array(json_cat* cat, unsigned int index);
 static json_cat* json_cat_reset(json_cat* cat);
 
 static bool json_cat_valid(json_cat* cat);
 static bool json_cat_valid_value(json_cat* cat);
+
+static bool json_cat_isObject(json_cat* cat);
+static bool json_cat_isArray(json_cat* cat);
 
 static bool json_cat_isString(json_cat* cat);
 static bool json_cat_isInt(json_cat* cat);
@@ -27,6 +30,7 @@ static const char* json_cat_getString(json_cat* cat);
 static int json_cat_getInt(json_cat* cat);
 static double json_cat_getDouble(json_cat* cat);
 static bool json_cat_getBool(json_cat* cat);
+static unsigned int json_cat_length(json_cat* cat);
 
 static json_cat_private* get_json_cat_private(json_cat* cat);
 
@@ -38,9 +42,11 @@ struct json_cat_private {
 
 static const json_cat json_cat_template = {
     .load = json_cat_load,
-    .obj = json_cat_obj,
-    .idx = json_cat_idx,
+    .object = json_cat_object,
+    .array = json_cat_array,
     .reset = json_cat_reset,
+    .isObject = json_cat_isObject,
+    .isArray = json_cat_isArray,
     .isString = json_cat_isString,
     .isInt = json_cat_isInt,
     .isDouble = json_cat_isDouble,
@@ -50,6 +56,7 @@ static const json_cat json_cat_template = {
     .getInt = json_cat_getInt,
     .getDouble = json_cat_getDouble,
     .getBool = json_cat_getBool,
+    .length = json_cat_length,
 };
 
 json_cat* json_cat_create(void)
@@ -89,10 +96,10 @@ static json_cat* json_cat_load(json_cat* cat, const char* file)
     return cat;
 }
 
-static json_cat* json_cat_obj(json_cat* cat, const char* string)
+static json_cat* json_cat_object(json_cat* cat, const char* string)
 {
     json_cat_private* priv = get_json_cat_private(cat);
-    if (priv->isFailed == true) {
+    if (priv->parser == NULL || priv->isFailed == true) {
         return cat;
     }
     if (json_node_get_node_type(priv->node) == JSON_NODE_OBJECT) {
@@ -110,10 +117,10 @@ static json_cat* json_cat_obj(json_cat* cat, const char* string)
     return cat;
 }
 
-static json_cat* json_cat_idx(json_cat* cat, unsigned int index)
+static json_cat* json_cat_array(json_cat* cat, unsigned int index)
 {
     json_cat_private* priv = get_json_cat_private(cat);
-    if (priv->isFailed == true) {
+    if (priv->parser == NULL || priv->isFailed == true) {
         return cat;
     }
     if (json_node_get_node_type(priv->node) == JSON_NODE_ARRAY) {
@@ -162,6 +169,24 @@ static bool json_cat_valid_value(json_cat* cat)
         return false;
     }
     return true;
+}
+
+static bool json_cat_isObject(json_cat* cat)
+{
+    json_cat_private* priv = get_json_cat_private(cat);
+    if (json_cat_valid(cat) == false) {
+        return false;
+    }
+    return (json_node_get_node_type(priv->node) == JSON_NODE_OBJECT);
+}
+
+static bool json_cat_isArray(json_cat* cat)
+{
+    json_cat_private* priv = get_json_cat_private(cat);
+    if (json_cat_valid(cat) == false) {
+        return false;
+    }
+    return (json_node_get_node_type(priv->node) == JSON_NODE_ARRAY);
 }
 
 static bool json_cat_isString(json_cat* cat)
@@ -242,6 +267,19 @@ static bool json_cat_getBool(json_cat* cat)
 {
     json_cat_private* priv = get_json_cat_private(cat);
     return json_node_get_boolean(priv->node);
+}
+
+static unsigned int json_cat_length(json_cat* cat)
+{
+    json_cat_private* priv = get_json_cat_private(cat);
+    if (priv->parser == NULL || priv->isFailed == true) {
+        return 0;
+    }
+    if (json_node_get_node_type(priv->node) == JSON_NODE_ARRAY) {
+        JsonArray* array = json_node_get_array(priv->node);
+        return json_array_get_length(array);
+    }
+    return 0;
 }
 
 static json_cat_private* get_json_cat_private(json_cat* cat)

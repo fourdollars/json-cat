@@ -13,9 +13,12 @@ struct json_cat {
     void* _priv;
 
     json_cat* (*load) (json_cat* cat, const char* file);
-    json_cat* (*obj) (json_cat* cat, const char* string);
-    json_cat* (*idx) (json_cat* cat, unsigned int index);
+    json_cat* (*object) (json_cat* cat, const char* string);
+    json_cat* (*array) (json_cat* cat, unsigned int index);
     json_cat* (*reset) (json_cat* cat);
+
+    bool (*isObject) (json_cat* cat);
+    bool (*isArray) (json_cat* cat);
 
     bool (*isString) (json_cat* cat);
     bool (*isInt) (json_cat* cat);
@@ -28,6 +31,7 @@ struct json_cat {
     int (*getInt) (json_cat* cat);
     double (*getDouble) (json_cat* cat);
     bool (*getBool) (json_cat* cat);
+    unsigned int (*length) (json_cat* cat);
 };
 __END_DECLS
 #endif //__JSON_CAT_H__

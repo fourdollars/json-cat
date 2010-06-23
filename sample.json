@@ -1,14 +1,6 @@
 {
-	"category": [
-		{
-			"list": [
-				{
-					"id": 123,
-					"name": "blah",
-                    "ratio": 3.14,
-                    "married": true
-				}
-            ]
-        }
+	"subject": [
+        "Mathematics",
+        "Physics"
     ]
 }
