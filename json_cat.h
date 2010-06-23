@@ -13,6 +13,7 @@ struct json_cat {
     void* _priv;
 
     json_cat* (*load) (json_cat* cat, const char* file);
+    json_cat* (*feed) (json_cat* cat, const char* fish);
     json_cat* (*object) (json_cat* cat, const char* string);
     json_cat* (*array) (json_cat* cat, unsigned int index);
     json_cat* (*reset) (json_cat* cat);

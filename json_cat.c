@@ -9,6 +9,7 @@
 typedef struct json_cat_private json_cat_private;
 
 static json_cat* json_cat_load(json_cat* cat, const char* file);
+static json_cat* json_cat_feed(json_cat* cat, const char* fish);
 static json_cat* json_cat_object(json_cat* cat, const char* string);
 static json_cat* json_cat_array(json_cat* cat, unsigned int index);
 static json_cat* json_cat_reset(json_cat* cat);
@@ -42,6 +43,7 @@ struct json_cat_private {
 
 static const json_cat json_cat_template = {
     .load = json_cat_load,
+    .feed = json_cat_feed,
     .object = json_cat_object,
     .array = json_cat_array,
     .reset = json_cat_reset,
@@ -75,6 +77,7 @@ json_cat* json_cat_create(void)
         return NULL;
     }
     memset(cat->_priv, 0, sizeof(json_cat_private));
+    g_type_init();
     return cat;
 }
 
@@ -82,11 +85,33 @@ static json_cat* json_cat_load(json_cat* cat, const char* file)
 {
     GError* error = NULL;
     json_cat_private* priv = get_json_cat_private(cat);
-    g_type_init();
+    if (priv->parser != NULL) {
+        g_object_unref(priv->parser);
+    }
     priv->parser = json_parser_new();
     json_parser_load_from_file(priv->parser, file, &error);
     if (error) {
         g_print("Unable to parse `%s': %s\n", file, error->message);
+        g_error_free(error);
+        g_object_unref(priv->parser);
+        priv->parser = NULL;
+        return cat;
+    }
+    priv->node = json_parser_get_root(priv->parser);
+    return cat;
+}
+
+static json_cat* json_cat_feed(json_cat* cat, const char* fish)
+{
+    GError* error = NULL;
+    json_cat_private* priv = get_json_cat_private(cat);
+    if (priv->parser != NULL) {
+        g_object_unref(priv->parser);
+    }
+    priv->parser = json_parser_new();
+    json_parser_load_from_data(priv->parser, fish, -1, &error);
+    if (error) {
+        g_print("Unable to parse buffer: %s\n", error->message);
         g_error_free(error);
         g_object_unref(priv->parser);
         priv->parser = NULL;
