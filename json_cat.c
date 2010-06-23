@@ -1,0 +1,234 @@
+#include <linux/stddef.h>
+#include <stdlib.h>
+#include <string.h>
+#include <glib-object.h>
+#include <json-glib/json-glib.h>
+
+#include "json_cat.h"
+
+typedef struct json_cat_private json_cat_private;
+
+static json_cat* json_cat_load(json_cat* cat, const char* file);
+static json_cat* json_cat_obj(json_cat* cat, const char* string);
+static json_cat* json_cat_idx(json_cat* cat, unsigned int index);
+static json_cat* json_cat_reset(json_cat* cat);
+
+static bool json_cat_valid(json_cat* cat);
+static bool json_cat_valid_value(json_cat* cat);
+
+static bool json_cat_isString(json_cat* cat);
+static bool json_cat_isInt(json_cat* cat);
+static bool json_cat_isDouble(json_cat* cat);
+static bool json_cat_isBool(json_cat* cat);
+
+static void json_cat_destroy(json_cat* cat);
+
+static const char* json_cat_getString(json_cat* cat);
+static int json_cat_getInt(json_cat* cat);
+static double json_cat_getDouble(json_cat* cat);
+static bool json_cat_getBool(json_cat* cat);
+
+static json_cat_private* get_json_cat_private(json_cat* cat);
+
+struct json_cat_private {
+    bool isFailed;
+    JsonParser* parser;
+    JsonNode* node;
+};
+
+static const json_cat json_cat_template = {
+    .load = json_cat_load,
+    .obj = json_cat_obj,
+    .idx = json_cat_idx,
+    .reset = json_cat_reset,
+    .isString = json_cat_isString,
+    .isInt = json_cat_isInt,
+    .isDouble = json_cat_isDouble,
+    .isBool = json_cat_isBool,
+    .destroy = json_cat_destroy,
+    .getString = json_cat_getString,
+    .getInt = json_cat_getInt,
+    .getDouble = json_cat_getDouble,
+    .getBool = json_cat_getBool,
+};
+
+json_cat* json_cat_create(void)
+{
+    json_cat* cat = g_malloc(sizeof(json_cat));
+    if (cat == NULL) {
+        g_warning("No enough memory.");
+        return NULL;
+    }
+    memset(cat, 0, sizeof(json_cat));
+    memcpy(cat, &json_cat_template, sizeof(json_cat));
+    cat->_priv = malloc(sizeof(json_cat_private));
+    if (cat->_priv == NULL) {
+        g_warning("No enough memory.");
+        g_free(cat);
+        return NULL;
+    }
+    memset(cat->_priv, 0, sizeof(json_cat_private));
+    return cat;
+}
+
+static json_cat* json_cat_load(json_cat* cat, const char* file)
+{
+    GError* error = NULL;
+    json_cat_private* priv = get_json_cat_private(cat);
+    g_type_init();
+    priv->parser = json_parser_new();
+    json_parser_load_from_file(priv->parser, file, &error);
+    if (error) {
+        g_print("Unable to parse `%s': %s\n", file, error->message);
+        g_error_free(error);
+        g_object_unref(priv->parser);
+        priv->parser = NULL;
+        return cat;
+    }
+    priv->node = json_parser_get_root(priv->parser);
+    return cat;
+}
+
+static json_cat* json_cat_obj(json_cat* cat, const char* string)
+{
+    json_cat_private* priv = get_json_cat_private(cat);
+    if (priv->isFailed == true) {
+        return cat;
+    }
+    if (json_node_get_node_type(priv->node) == JSON_NODE_OBJECT) {
+        JsonObject* object = json_node_get_object(priv->node);
+        if (json_object_has_member(object, string) == TRUE) {
+            priv->node = json_object_get_member(object, string);
+        } else {
+            g_warning("Get '%s' from object failed\n", string);
+            priv->isFailed = true;
+        }
+    } else {
+        g_warning("Get from object failed\n");
+        priv->isFailed = true;
+    }
+    return cat;
+}
+
+static json_cat* json_cat_idx(json_cat* cat, unsigned int index)
+{
+    json_cat_private* priv = get_json_cat_private(cat);
+    if (priv->isFailed == true) {
+        return cat;
+    }
+    if (json_node_get_node_type(priv->node) == JSON_NODE_ARRAY) {
+        JsonArray* array = json_node_get_array(priv->node);
+        if (json_array_get_length(array) > index) {
+            priv->node = json_array_get_element(array, index);
+        } else {
+            g_warning("Get %u from array failed\n", index);
+            priv->isFailed = true;
+        }
+    } else {
+        g_warning("Get from array failed\n");
+        priv->isFailed = true;
+    }
+    return cat;
+}
+
+static json_cat* json_cat_reset(json_cat* cat)
+{
+    json_cat_private* priv = get_json_cat_private(cat);
+
+    if (priv->parser != NULL) {
+        priv->node = json_parser_get_root(priv->parser);
+        priv->isFailed = false;
+    } else {
+        g_warning("There is no parser.");
+    }
+
+    return cat;
+}
+
+static bool json_cat_valid(json_cat* cat)
+{
+    json_cat_private* priv = get_json_cat_private(cat);
+    return (priv->isFailed == false);
+}
+
+static bool json_cat_valid_value(json_cat* cat)
+{
+    json_cat_private* priv = get_json_cat_private(cat);
+    if (json_cat_valid(cat) == false) {
+        return false;
+    }
+    if (json_node_get_node_type(priv->node) != JSON_NODE_VALUE) {
+        g_warning("Not json value.");
+        return false;
+    }
+    return true;
+}
+
+static bool json_cat_isString(json_cat* cat)
+{
+    json_cat_private* priv = get_json_cat_private(cat);
+    if (json_cat_valid_value(cat) == false) {
+        return false;
+    }
+}
+
+static bool json_cat_isInt(json_cat* cat)
+{
+    json_cat_private* priv = get_json_cat_private(cat);
+    if (json_cat_valid_value(cat) == false) {
+        return false;
+    }
+}
+
+static bool json_cat_isDouble(json_cat* cat)
+{
+    json_cat_private* priv = get_json_cat_private(cat);
+    if (json_cat_valid_value(cat) == false) {
+        return false;
+    }
+}
+
+static bool json_cat_isBool(json_cat* cat)
+{
+    json_cat_private* priv = get_json_cat_private(cat);
+    if (json_cat_valid_value(cat) == false) {
+        return false;
+    }
+}
+
+static void json_cat_destroy(json_cat* cat)
+{
+    json_cat_private* priv = get_json_cat_private(cat);
+    g_free(priv);
+    g_free(cat);
+    return;
+}
+
+static const char* json_cat_getString(json_cat* cat)
+{
+    json_cat_private* priv = get_json_cat_private(cat);
+    return json_node_get_string(priv->node);
+}
+
+static int json_cat_getInt(json_cat* cat)
+{
+    json_cat_private* priv = get_json_cat_private(cat);
+    return json_node_get_int(priv->node);
+}
+
+static double json_cat_getDouble(json_cat* cat)
+{
+    json_cat_private* priv = get_json_cat_private(cat);
+    return json_node_get_double(priv->node);
+}
+
+static bool json_cat_getBool(json_cat* cat)
+{
+    json_cat_private* priv = get_json_cat_private(cat);
+    return json_node_get_boolean(priv->node);
+}
+
+static json_cat_private* get_json_cat_private(json_cat* cat)
+{
+    return (json_cat_private*) cat->_priv;
+}
