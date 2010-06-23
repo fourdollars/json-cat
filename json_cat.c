@@ -12,6 +12,7 @@ static json_cat* json_cat_load(json_cat* cat, const char* file);
 static json_cat* json_cat_feed(json_cat* cat, const char* fish);
 static json_cat* json_cat_object(json_cat* cat, const char* string);
 static json_cat* json_cat_array(json_cat* cat, unsigned int index);
+static json_cat* json_cat_parent(json_cat* cat);
 static json_cat* json_cat_reset(json_cat* cat);
 
 static bool json_cat_valid(json_cat* cat);
@@ -46,6 +47,7 @@ static const json_cat json_cat_template = {
     .feed = json_cat_feed,
     .object = json_cat_object,
     .array = json_cat_array,
+    .parent = json_cat_parent,
     .reset = json_cat_reset,
     .isObject = json_cat_isObject,
     .isArray = json_cat_isArray,
@@ -159,6 +161,22 @@ static json_cat* json_cat_array(json_cat* cat, unsigned int index)
     } else {
         g_warning("Get from array failed\n");
         priv->isFailed = true;
+    }
+    return cat;
+}
+
+static json_cat* json_cat_parent(json_cat* cat)
+{
+    json_cat_private* priv = get_json_cat_private(cat);
+    JsonNode* node = NULL;
+    if (priv->parser == NULL || priv->isFailed == true) {
+        return cat;
+    }
+    node = json_node_get_parent(priv->node);
+    if (node == NULL) {
+        g_warning("Already be root.");
+    } else {
+        priv->node = node;
     }
     return cat;
 }

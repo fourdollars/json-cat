@@ -16,6 +16,7 @@ struct json_cat {
     json_cat* (*feed) (json_cat* cat, const char* fish);
     json_cat* (*object) (json_cat* cat, const char* string);
     json_cat* (*array) (json_cat* cat, unsigned int index);
+    json_cat* (*parent) (json_cat* cat);
     json_cat* (*reset) (json_cat* cat);
 
     bool (*isObject) (json_cat* cat);

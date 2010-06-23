@@ -9,11 +9,10 @@ int main(int argc, char* argv[])
         unsigned int length = json->length(json);
 
         for (i = 0; i < length; i++) {
-            if (json->reset(json)
-                    ->object(json, "subject")
-                    ->array(json, i)
+            if (json->array(json, i)
                     ->isString(json) == true) {
                 printf("%s\n", json->getString(json));
+                json->parent(json);
             }
         }
     }
