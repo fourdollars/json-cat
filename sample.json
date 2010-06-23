@@ -1,6 +1,12 @@
-{
-	"subject": [
-        "Mathematics",
-        "Physics"
-    ]
-}
+[
+    {
+        "name": "john",
+        "address": "Taiwan, Taipei",
+        "phone": "0123456789"
+    },
+    {
+        "name": "mary",
+        "address": "US, New York",
+        "phone": "9876543210"
+    }
+]

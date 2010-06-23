@@ -4,15 +4,19 @@
 int main(int argc, char* argv[])
 {
     json_cat* json = json_cat_create();
-    if (json->load(json, argv[1])->object(json, "subject")->isArray(json) == true) {
+    json->load(json, argv[1]);
+    if (json->isArray(json) == true) {
         unsigned int i = 0;
         unsigned int length = json->length(json);
 
         for (i = 0; i < length; i++) {
             if (json->array(json, i)
+                    ->object(json, "name")
                     ->isString(json) == true) {
                 printf("%s\n", json->getString(json));
-                json->parent(json);
+                printf("%s\n", json->sibling(json, "address")->getString(json));
+                printf("%s\n", json->sibling(json, "phone")->getString(json));
+                json->parent(json)->parent(json);
             }
         }
     }

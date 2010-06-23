@@ -11,6 +11,7 @@ typedef struct json_cat_private json_cat_private;
 static json_cat* json_cat_load(json_cat* cat, const char* file);
 static json_cat* json_cat_feed(json_cat* cat, const char* fish);
 static json_cat* json_cat_object(json_cat* cat, const char* string);
+static json_cat* json_cat_sibling(json_cat* cat, const char* string);
 static json_cat* json_cat_array(json_cat* cat, unsigned int index);
 static json_cat* json_cat_parent(json_cat* cat);
 static json_cat* json_cat_reset(json_cat* cat);
@@ -46,6 +47,7 @@ static const json_cat json_cat_template = {
     .load = json_cat_load,
     .feed = json_cat_feed,
     .object = json_cat_object,
+    .sibling = json_cat_sibling,
     .array = json_cat_array,
     .parent = json_cat_parent,
     .reset = json_cat_reset,
@@ -141,6 +143,13 @@ static json_cat* json_cat_object(json_cat* cat, const char* string)
         g_warning("Get from object failed\n");
         priv->isFailed = true;
     }
+    return cat;
+}
+
+static json_cat* json_cat_sibling(json_cat* cat, const char* string)
+{
+    json_cat_parent(cat);
+    json_cat_object(cat, string);
     return cat;
 }
 
