@@ -170,6 +170,10 @@ static bool json_cat_isString(json_cat* cat)
     if (json_cat_valid_value(cat) == false) {
         return false;
     }
+    if (json_node_get_value_type(priv->node) != G_TYPE_STRING) {
+        return false;
+    }
+    return true;
 }
 
 static bool json_cat_isInt(json_cat* cat)
@@ -178,6 +182,10 @@ static bool json_cat_isInt(json_cat* cat)
     if (json_cat_valid_value(cat) == false) {
         return false;
     }
+    if (json_node_get_value_type(priv->node) != G_TYPE_INT64) {
+        return false;
+    }
+    return true;
 }
 
 static bool json_cat_isDouble(json_cat* cat)
@@ -186,6 +194,10 @@ static bool json_cat_isDouble(json_cat* cat)
     if (json_cat_valid_value(cat) == false) {
         return false;
     }
+    if (json_node_get_value_type(priv->node) != G_TYPE_DOUBLE) {
+        return false;
+    }
+    return true;
 }
 
 static bool json_cat_isBool(json_cat* cat)
@@ -194,6 +206,10 @@ static bool json_cat_isBool(json_cat* cat)
     if (json_cat_valid_value(cat) == false) {
         return false;
     }
+    if (json_node_get_value_type(priv->node) != G_TYPE_BOOLEAN) {
+        return false;
+    }
+    return true;
 }
 
 static void json_cat_destroy(json_cat* cat)
