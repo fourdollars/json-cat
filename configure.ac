@@ -15,7 +15,8 @@ LT_INIT
 AC_PROG_CC
 
 # Checks for libraries.
-PKG_CHECK_MODULES([JSON], [json-glib-1.0])
+PKG_CHECK_MODULES([json], [json-glib-1.0])
+PKG_CHECK_MODULES([soup], [libsoup-2.4 >= 2.26])
 
 # Checks for header files.
 

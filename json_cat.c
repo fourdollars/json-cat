@@ -3,6 +3,7 @@
 #include <string.h>
 #include <glib-object.h>
 #include <json-glib/json-glib.h>
+#include <libsoup/soup.h>
 
 #include "json_cat.h"
 
@@ -10,6 +11,7 @@ typedef struct json_cat_private json_cat_private;
 
 static json_cat* json_cat_load(json_cat* cat, const char* file);
 static json_cat* json_cat_feed(json_cat* cat, const char* fish);
+static json_cat* json_cat_http(json_cat* cat, const char* url);
 static json_cat* json_cat_object(json_cat* cat, const char* string);
 static json_cat* json_cat_sibling(json_cat* cat, const char* string);
 static json_cat* json_cat_array(json_cat* cat, unsigned int index);
@@ -47,6 +49,7 @@ struct json_cat_private {
 static const json_cat json_cat_template = {
     .load = json_cat_load,
     .feed = json_cat_feed,
+    .http = json_cat_http,
     .object = json_cat_object,
     .sibling = json_cat_sibling,
     .array = json_cat_array,
@@ -124,6 +127,38 @@ static json_cat* json_cat_feed(json_cat* cat, const char* fish)
         return cat;
     }
     priv->node = json_parser_get_root(priv->parser);
+    return cat;
+}
+
+static json_cat* json_cat_http(json_cat* cat, const char* url)
+{
+    GError* error = NULL;
+    json_cat_private* priv = get_json_cat_private(cat);
+    SoupSession* session = soup_session_sync_new();
+    SoupMessage* msg = soup_message_new("GET", url);
+
+    if (soup_session_send_message(session, msg) != 200) {
+        g_print("Unable to get data from: %s\n", url);
+        return cat;
+    }
+
+    if (priv->parser != NULL) {
+        g_object_unref(priv->parser);
+    }
+
+    priv->parser = json_parser_new();
+    json_parser_load_from_data(priv->parser, msg->response_body->data, msg->response_body->length, &error);
+
+    if (error) {
+        g_print("Unable to parse buffer: %s\n", error->message);
+        g_error_free(error);
+        g_object_unref(priv->parser);
+        priv->parser = NULL;
+        return cat;
+    }
+
+    priv->node = json_parser_get_root(priv->parser);
+
     return cat;
 }
 
