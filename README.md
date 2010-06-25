@@ -1,3 +1,13 @@
+Installation
+============
+
+Ubuntu 10.04
+------------
+
+    sudo apt-add-repository ppa:fourdollars/lucid
+    sudo apt-get update
+    sudo apt-get install libjson-cat-dev
+
 Sample
 ======
 
