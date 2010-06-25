@@ -7,4 +7,4 @@ test_cat_LDADD = libjson-cat.la
 
 libjson_cat_la_SOURCES = json_cat.c
 libjson_cat_la_CPPFLAGS= @json_CFLAGS@ @soup_CFLAGS@
-libjson_cat_la_LDFLAGS= @json_LIBS@ @soup_LIBS@
+libjson_cat_la_LDFLAGS= @json_LIBS@ @soup_LIBS@ -version-info @LT_CURRENT@:@LT_REVISION@:@LT_AGE@
