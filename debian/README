@@ -1,0 +1,13 @@
+The Debian Package json-cat
+----------------------------
+
+#include <json-cat.h>
+
+json_cat* json = json_cat_create();
+json->load(json, "file.json")
+    ->object(json, "member")
+    ->arrary(json, 4)
+    ->getString(json);
+json->destroy(json);
+
+ -- Shih-Yuan Lee (FourDollars) <fourdollars@gmail.com>  Fri, 25 Jun 2010 15:07:18 +0800
