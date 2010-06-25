@@ -39,7 +39,7 @@ AC_SUBST(LT_AGE)
 AC_PROG_CC
 
 # Checks for libraries.
-PKG_CHECK_MODULES([json], [json-glib-1.0])
+PKG_CHECK_MODULES([json], [json-glib-1.0 >= 0.7.6])
 PKG_CHECK_MODULES([soup], [libsoup-2.4 >= 2.26])
 
 # Checks for header files.
@@ -48,5 +48,8 @@ PKG_CHECK_MODULES([soup], [libsoup-2.4 >= 2.26])
 
 # Checks for library functions.
 
-AC_CONFIG_FILES([Makefile])
+AC_CONFIG_FILES([
+                 Makefile
+                 json-cat.pc
+                 ])
 AC_OUTPUT
