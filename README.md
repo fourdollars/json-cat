@@ -6,8 +6,8 @@ Licensed under the [Apache License, Version 2.0](http://www.apache.org/licenses/
 Installation
 ============
 
-Ubuntu 10.04
-------------
+Ubuntu 10.04 PPA
+----------------
 
     sudo apt-add-repository ppa:fourdollars/lucid
     sudo apt-get update
